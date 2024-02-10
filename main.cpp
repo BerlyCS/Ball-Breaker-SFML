@@ -9,6 +9,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 
 using namespace sf;
@@ -33,21 +34,17 @@ private:
 
 public:
     Ball():
-        velX(rand()%max_speed+1),
-        velY(rand()%max_speed+1),
-        size(rand() % max_size + 20)
+        velX((rand()%2 == 0 ? -1 : 1)*rand()%max_speed+1),
+        velY((rand()%2 == 0 ? -1 : 1)*rand()%max_speed+1),
+        size(rand() % max_size + 20),
+        killed(false)
     {
-        color = Color(rand() % 256, rand() % 256, rand() % 256);
-
-        killed=false;
-
         X = rand() % (int(width) - size * 2);
         Y = rand() % (int(height) - size * 2);
-        Vector2f posicion(X, Y);
 
         setRadius(size);
-        setPosition(posicion);
-        setFillColor(color);
+        setPosition(Vector2f(X,Y));
+        setFillColor(Color(rand() % 256, rand() % 256, rand() % 256));
     }
 
     void setVelY(float vel) {velY = vel;}
@@ -88,6 +85,7 @@ public:
 };
 
 void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
+    float easing = 0.5f;
     //Horizontal Line
     //VertexArray lineh(LineStrip, 4);
     //lineh[0].position = Vector2f(0, My+stroke);
@@ -99,22 +97,24 @@ void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, Re
     //VertexArray linev(LineStrip, 2);
     //linev[0].position = Vector2f(Mx, 0);
     //linev[1].position = Vector2f(Mx, height);
-    
+
+    //Horizontal
     lineh.setPosition(0,My);
     lineh.setOutlineThickness(2.f); // Set outline thickness
-    lineh.setOutlineColor(Color::Blue); // Set outline color
+    lineh.setOutlineColor(Color::Red); // Set outline color
     lineh.setFillColor(Color::White); // Set fill color to transparent
     
-
+    //Vertical
     linev.setPosition(Mx,0);
     linev.setOutlineThickness(2.f); // Set outline thickness
-    linev.setOutlineColor(Color::Blue); // Set outline color
+    linev.setOutlineColor(Color::Red); // Set outline color
     linev.setFillColor(Color::White); // Set fill color to transparent
-                                      //
-    circle.setPosition(Mx-100,My-100);
+    
+    //Circle
+    circle.setPosition(Mx-50,My-50);
     circle.setOutlineThickness(2.f); // Set outline thickness
-    circle.setOutlineColor(sf::Color::Red); // Set outline color
-    circle.setFillColor(sf::Color::Transparent); // Set fill color to transparent
+    circle.setOutlineColor(Color::Red); // Set outline color
+    circle.setFillColor(Color::Transparent); // Set fill color to transparent
 
     //window.draw(linev);
     window.draw(lineh);
@@ -130,7 +130,7 @@ int main() {
 
     RectangleShape lineh(Vector2f(width, stroke));
     RectangleShape linev(Vector2f(stroke, height));
-    sf::CircleShape circle(100.f);
+    CircleShape circle(50.f);
 
     ifstream params("parametros.txt");
     if (!(params >> max_speed >> max_size >> objects)) {
@@ -144,7 +144,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    bool aHold=false, aHoldPrev=false;
+    bool aHold=false, aHoldPrev=false, game_finish=false;
 
     while (window.isOpen()) {
         Event event;
@@ -152,11 +152,11 @@ int main() {
             if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
 
-            if (event.type == Event::KeyPressed && event.key.code == Keyboard::A) {
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::B) {
                 aHold = true;
             }
 
-            if (event.type == Event::KeyReleased && event.key.code == Keyboard::A) {
+            if (event.type == Event::KeyReleased && event.key.code == Keyboard::B) {
                 aHold = false;
             }
         }
@@ -174,13 +174,25 @@ int main() {
 
         window.clear();
 
+        game_finish=true;
+
         for (int i = 0; i < objects; i++) {
-            if (Balls[i].is_dead()) continue;
-            else window.draw(Balls[i]);
+            if (Balls[i].is_dead()) {
+                continue;
+            }
+            else {
+                game_finish=false;
+                window.draw(Balls[i]);
+            }
         }
-        dr_line(window,Mx,My, lineh,linev,circle);
+
+        if (game_finish) {
+            window.close();
+        }
+
+        dr_line(window, Mx, My, lineh, linev, circle);
+
         window.display();
     }
-
     return 0;
 }
