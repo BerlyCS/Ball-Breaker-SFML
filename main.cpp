@@ -9,8 +9,7 @@
 using namespace sf;
 using namespace std;
 
-float width = VideoMode::getDesktopMode().width;
-float height = VideoMode::getDesktopMode().height;
+
 int max_speed = 5;
 int max_size = 50;
 int objects = 100;
