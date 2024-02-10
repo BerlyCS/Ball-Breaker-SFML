@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/VideoMode.hpp>
 #include <cmath>
 #include <fstream>
 #include <vector>
@@ -8,11 +9,8 @@
 using namespace sf;
 using namespace std;
 
-
-string trash;
-
-float width = 1366.0f;
-float height = 768.0f;
+float width = VideoMode::getDesktopMode().width;
+float height = VideoMode::getDesktopMode().height;
 int max_speed = 5;
 int max_size = 50;
 int objects = 100;
