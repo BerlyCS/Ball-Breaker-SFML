@@ -4,12 +4,12 @@
 #include <SFML/Window/VideoMode.hpp>
 #include <cmath>
 #include <fstream>
-#include <vector>
 
 using namespace sf;
 using namespace std;
 
-
+float width = 1600.0f;
+float height = 900.0f;
 int max_speed = 5;
 int max_size = 50;
 int objects = 100;
@@ -82,7 +82,7 @@ public:
 
 int main() {
     RenderWindow window(VideoMode::getFullscreenModes()[0], "Bouncing balls", Style::Fullscreen);
-    window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
 
     ifstream params("parametros.txt");
     if (!(params >> max_speed >> max_size >> objects)) {
@@ -108,7 +108,6 @@ int main() {
                 aHold = true;
             }
 
-            // Verificar si la tecla "A" se ha soltado
             if (event.type == Event::KeyReleased && event.key.code == Keyboard::A) {
                 aHold = false;
             }
@@ -117,10 +116,10 @@ int main() {
         Vector2i mousePosition = Mouse::getPosition(window);
 
         for (int i = 0; i < objects; i++) {
-           Balls[i].move();
            if (Balls[i].distance(mousePosition.x, mousePosition.y) && aHold && !aHoldPrev) {
                 Balls[i].kill();
             }
+           Balls[i].move();
         }
 
          aHoldPrev = aHold;
@@ -137,4 +136,3 @@ int main() {
 
     return 0;
 }
-
