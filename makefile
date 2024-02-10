@@ -4,4 +4,4 @@ test:
 
 windows:
 	g++ -c main.cpp -I D:\Libs\SFML-2.5.1\include -o obj.o
-	g++ -I D:\libs\SFML-2.5.1\lib -lsfml-graphics -lsfml-window -lsfml-system
+	g++ -I D:\libs\SFML-2.5.1\lib -lsfml-graphics -lsfml-window -lsfml-system -mwindows
