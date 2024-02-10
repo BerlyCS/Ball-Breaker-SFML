@@ -1,4 +1,10 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
@@ -13,6 +19,7 @@ float height = VideoMode::getDesktopMode().height;
 int max_speed = 5;
 int max_size = 50;
 int objects = 100;
+int stroke = 1;
 
 class Ball : public CircleShape {
 private:
@@ -80,9 +87,50 @@ public:
 
 };
 
+void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
+    //Horizontal Line
+    //VertexArray lineh(LineStrip, 4);
+    //lineh[0].position = Vector2f(0, My+stroke);
+    //lineh[1].position = Vector2f(width, My+stroke);
+    //lineh[2].position = Vector2f(0, My-stroke);
+    //lineh[3].position = Vector2f(width, My-stroke);
+    
+    //Vertical line
+    //VertexArray linev(LineStrip, 2);
+    //linev[0].position = Vector2f(Mx, 0);
+    //linev[1].position = Vector2f(Mx, height);
+    
+    lineh.setPosition(0,My);
+    lineh.setOutlineThickness(2.f); // Set outline thickness
+    lineh.setOutlineColor(Color::Blue); // Set outline color
+    lineh.setFillColor(Color::White); // Set fill color to transparent
+    
+
+    linev.setPosition(Mx,0);
+    linev.setOutlineThickness(2.f); // Set outline thickness
+    linev.setOutlineColor(Color::Blue); // Set outline color
+    linev.setFillColor(Color::White); // Set fill color to transparent
+                                      //
+    circle.setPosition(Mx-100,My-100);
+    circle.setOutlineThickness(2.f); // Set outline thickness
+    circle.setOutlineColor(sf::Color::Red); // Set outline color
+    circle.setFillColor(sf::Color::Transparent); // Set fill color to transparent
+
+    //window.draw(linev);
+    window.draw(lineh);
+    window.draw(linev);
+    window.draw(circle);
+
+
+}
+
 int main() {
     RenderWindow window(VideoMode::getFullscreenModes()[0], "Bouncing balls", Style::Fullscreen);
     window.setVerticalSyncEnabled(true);
+
+    RectangleShape lineh(Vector2f(width, stroke));
+    RectangleShape linev(Vector2f(stroke, height));
+    sf::CircleShape circle(100.f);
 
     ifstream params("parametros.txt");
     if (!(params >> max_speed >> max_size >> objects)) {
@@ -112,17 +160,17 @@ int main() {
                 aHold = false;
             }
         }
-
-        Vector2i mousePosition = Mouse::getPosition(window);
+  
+        float Mx = Mouse::getPosition(window).x;
+        float My = Mouse::getPosition(window).y;
 
         for (int i = 0; i < objects; i++) {
-           if (Balls[i].distance(mousePosition.x, mousePosition.y) && aHold && !aHoldPrev) {
+           if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
                 Balls[i].kill();
             }
            Balls[i].move();
         }
-
-         aHoldPrev = aHold;
+        aHoldPrev = aHold;
 
         window.clear();
 
@@ -130,7 +178,7 @@ int main() {
             if (Balls[i].is_dead()) continue;
             else window.draw(Balls[i]);
         }
-
+        dr_line(window,Mx,My, lineh,linev,circle);
         window.display();
     }
 
