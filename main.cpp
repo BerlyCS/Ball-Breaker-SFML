@@ -1,5 +1,7 @@
+#include <SFML/Audio/Sound.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -8,6 +10,7 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <SFML/Audio.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -34,16 +37,20 @@ private:
 
 public:
     Ball():
-        velX((rand()%2 == 0 ? -1 : 1)*rand()%max_speed+1),
-        velY((rand()%2 == 0 ? -1 : 1)*rand()%max_speed+1),
+        velX(rand()%max_speed+1),
+        velY(rand()%max_speed+1),
         size(rand() % max_size + 20),
         killed(false)
     {
         X = rand() % (int(width) - size * 2);
         Y = rand() % (int(height) - size * 2);
 
+        velX = velX * pow(-1,rand()%2+1);
+        velY = velY * pow(-1,rand()%2+1);
+
         setRadius(size);
         setPosition(Vector2f(X,Y));
+        setOutlineColor(Color::Black);
         setFillColor(Color(rand() % 256, rand() % 256, rand() % 256));
     }
 
@@ -57,7 +64,8 @@ public:
     int getPosY(){return Y;}
     void kill() {killed=true;}
     bool is_dead() {return killed;}
-
+    
+    //Movement
     virtual void move() {
         X = X + velX;
         if (X < 0 || X > width - size * 2) {
@@ -69,7 +77,8 @@ public:
         }
         setPosition(Vector2f(X,Y));
     }
-
+    
+    //Collision with cursor
     bool distance(int Mx, int My) {
         float dist = sqrt((Mx - X - size) * (Mx - X -size) + (My - Y-size) * (My - Y-size));
         if (dist-1 < size) {
@@ -78,6 +87,7 @@ public:
         return false;
     }
 
+    //Unused
     void change_color() {
         setFillColor(Color(rand() % 256, rand() % 256, rand() % 256));
     }
@@ -120,7 +130,13 @@ void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, Re
     window.draw(lineh);
     window.draw(linev);
     window.draw(circle);
+}
 
+void game_over_screen() {
+
+}
+
+void reset_game() {
 
 }
 
@@ -144,7 +160,15 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    bool aHold=false, aHoldPrev=false, game_finish=false;
+    bool aHold=false, aHoldPrev=false, game_over=false;
+
+    SoundBuffer buffer;
+    if (!buffer.loadFromFile("Fire.mp3")) {
+        return 1;
+    }
+    
+    Sound fire;
+    fire.setBuffer(buffer);
 
     while (window.isOpen()) {
         Event event;
@@ -152,11 +176,12 @@ int main() {
             if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
 
-            if (event.type == Event::KeyPressed && event.key.code == Keyboard::B) {
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::B || event.type == Event::MouseButtonPressed) {
+                fire.play();
                 aHold = true;
             }
 
-            if (event.type == Event::KeyReleased && event.key.code == Keyboard::B) {
+            if (event.type == Event::KeyReleased && event.key.code == Keyboard::B || event.type == sf::Event::MouseButtonReleased) {
                 aHold = false;
             }
         }
@@ -165,34 +190,45 @@ int main() {
         float My = Mouse::getPosition(window).y;
 
         for (int i = 0; i < objects; i++) {
-           if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
-                Balls[i].kill();
+            if (!Balls[i].is_dead()) {
+                if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
+                    Balls[i].kill();
+                }
             }
            Balls[i].move();
         }
+
         aHoldPrev = aHold;
 
         window.clear();
 
-        game_finish=true;
+        game_over=true;
 
         for (int i = 0; i < objects; i++) {
             if (Balls[i].is_dead()) {
                 continue;
             }
             else {
-                game_finish=false;
+                game_over=false;
                 window.draw(Balls[i]);
             }
-        }
-
-        if (game_finish) {
-            window.close();
         }
 
         dr_line(window, Mx, My, lineh, linev, circle);
 
         window.display();
+
+        if (game_over) {
+            buffer.loadFromFile("GameOver.mp3");
+            Sound game_over_fx;
+            game_over_fx.setBuffer(buffer);
+            game_over_fx.play();
+            while (game_over_fx.getStatus() == Sound::Playing) {
+               //Nothing to do 
+            }
+            window.close();
+        }
+
     }
     return 0;
 }
