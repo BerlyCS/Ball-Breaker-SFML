@@ -1,5 +1,5 @@
 test:
-	g++ main.cpp -I/usr/include/ -o test.exe -lsfml-graphics -lsfml-window -lsfml-system
+	g++ -O3 main.cpp -I/usr/include/ -o test.exe -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 	./test.exe
 
 windows:
