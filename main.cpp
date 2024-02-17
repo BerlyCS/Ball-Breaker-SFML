@@ -1,4 +1,5 @@
 #include <SFML/Audio/Sound.hpp>
+#include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -13,6 +14,7 @@
 #include <SFML/Audio.hpp>
 #include <cmath>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 
 using namespace sf;
@@ -24,6 +26,8 @@ int max_speed = 5;
 int max_size = 50;
 int objects = 100;
 int stroke = 1;
+
+//void srand(time(0));
 
 class Ball : public CircleShape {
 private:
@@ -64,6 +68,7 @@ public:
     int getPosY(){return Y;}
     void kill() {killed=true;}
     bool is_dead() {return killed;}
+    void revive() {killed=false;}
     
     //Movement
     virtual void move() {
@@ -94,8 +99,13 @@ public:
 
 };
 
-void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
+void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
     float easing = 0.5f;
+
+    float Mx = Mouse::getPosition(window).x;
+    float My = Mouse::getPosition(window).y;
+
+
     //Horizontal Line
     //VertexArray lineh(LineStrip, 4);
     //lineh[0].position = Vector2f(0, My+stroke);
@@ -112,31 +122,48 @@ void dr_line(RenderWindow& window, float Mx, float My, RectangleShape& lineh, Re
     lineh.setPosition(0,My);
     lineh.setOutlineThickness(2.f); // Set outline thickness
     lineh.setOutlineColor(Color::Red); // Set outline color
-    lineh.setFillColor(Color::White); // Set fill color to transparent
+    lineh.setFillColor(Color::Red); // Set fill color to transparent
     
     //Vertical
     linev.setPosition(Mx,0);
     linev.setOutlineThickness(2.f); // Set outline thickness
     linev.setOutlineColor(Color::Red); // Set outline color
-    linev.setFillColor(Color::White); // Set fill color to transparent
+    linev.setFillColor(Color::Red); // Set fill color to transparent
     
     //Circle
     circle.setPosition(Mx-50,My-50);
     circle.setOutlineThickness(2.f); // Set outline thickness
     circle.setOutlineColor(Color::Red); // Set outline color
     circle.setFillColor(Color::Transparent); // Set fill color to transparent
-
-    //window.draw(linev);
+ 
     window.draw(lineh);
     window.draw(linev);
     window.draw(circle);
 }
 
-void game_over_screen() {
-
+void pause_screen(Font& font) {
+    
 }
 
-void reset_game() {
+void game_over_screen(RenderWindow& window, Font& font) {
+    Text gameOver;
+    gameOver.setFont(font); 
+    gameOver.setString("Game Over!"); 
+    gameOver.setCharacterSize(128);
+    gameOver.setFillColor(Color::White);
+    gameOver.setPosition((width - gameOver.getLocalBounds().width)/2, 
+                         (height - gameOver.getLocalBounds().height)/2);
+    window.draw(gameOver);
+}
+
+//Unused
+void reset_game(Ball balls[]) {
+    for (int i=0;i<objects;i++) {
+        balls->revive();
+    }
+}
+
+void draw_score(RenderWindow& window, Font& font) {
 
 }
 
@@ -157,41 +184,54 @@ int main() {
 
     Font font;
     if (!font.loadFromFile("pixelated.ttf")) {
+
         return EXIT_FAILURE;
     }
 
     bool aHold=false, aHoldPrev=false, game_over=false;
 
     SoundBuffer buffer;
-    if (!buffer.loadFromFile("Fire.mp3")) {
+    if (!buffer.loadFromFile("Fire.ogg")) {
         return 1;
     }
     
-    Sound fire;
-    fire.setBuffer(buffer);
+    Sound fire(buffer);
+
+    SoundBuffer b2;
+    if (!b2.loadFromFile("Hit.ogg")) {
+        return EXIT_FAILURE;
+    }
+
+    Sound hit(b2);
+
 
     while (window.isOpen()) {
         Event event;
+        //Eventos
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
 
-            if (event.type == Event::KeyPressed && event.key.code == Keyboard::B || event.type == Event::MouseButtonPressed) {
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::B 
+                                                || event.type == Event::MouseButtonPressed) {
                 fire.play();
                 aHold = true;
             }
 
-            if (event.type == Event::KeyReleased && event.key.code == Keyboard::B || event.type == sf::Event::MouseButtonReleased) {
+            if (event.type == Event::KeyReleased && event.key.code == Keyboard::B 
+                                                 || event.type == sf::Event::MouseButtonReleased) {
                 aHold = false;
             }
         }
-  
+        
+        //Logica
         float Mx = Mouse::getPosition(window).x;
         float My = Mouse::getPosition(window).y;
 
         for (int i = 0; i < objects; i++) {
             if (!Balls[i].is_dead()) {
                 if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
+                    hit.play();
                     Balls[i].kill();
                 }
             }
@@ -214,21 +254,24 @@ int main() {
             }
         }
 
-        dr_line(window, Mx, My, lineh, linev, circle);
+        dr_line(window, lineh, linev, circle);
 
         window.display();
 
         if (game_over) {
-            buffer.loadFromFile("GameOver.mp3");
+            buffer.loadFromFile("GameOver.ogg");
             Sound game_over_fx;
             game_over_fx.setBuffer(buffer);
             game_over_fx.play();
             while (game_over_fx.getStatus() == Sound::Playing) {
-               //Nothing to do 
+                dr_line(window, lineh, linev, circle);
+                game_over_screen(window, font);
+                window.display();
+                window.clear();
             }
             window.close();
         }
 
     }
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -1,6 +1,6 @@
 3
 50
-10
+100
 
 corresponden a 
 -velocidad maxima

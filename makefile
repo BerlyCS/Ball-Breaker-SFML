@@ -1,7 +1,6 @@
-test:
-	g++ -O3 main.cpp -I/usr/include/ -o test.exe -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-	./test.exe
+compile:
+	g++ -O3 main.cpp -I/usr/include/ -o test -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+	./test
 
 windows:
-	g++ -c main.cpp -I D:\Libs\SFML-2.5.1\include -o obj.o
-	g++ -I D:\libs\SFML-2.5.1\lib -lsfml-graphics -lsfml-window -lsfml-system -mwindows
+	g++ main.cpp -I D:\Libs\SFML-2.5.1\include -L D:\libs\SFML-2.5.1\lib -lsfml-graphics -lsfml-window -lsfml-system -mwindows -lsfml-audio
