@@ -3,7 +3,9 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
@@ -20,14 +22,14 @@
 using namespace sf;
 using namespace std;
 
-float width = VideoMode::getDesktopMode().width;
-float height = VideoMode::getDesktopMode().height;
+const float width = VideoMode::getDesktopMode().width;
+const float height = VideoMode::getDesktopMode().height;
 int max_speed = 5;
 int max_size = 50;
 int objects = 100;
 int stroke = 1;
 
-//void srand(time(0));
+//srand(time(0));
 
 class Ball : public CircleShape {
 private:
@@ -105,25 +107,12 @@ void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev,
     float Mx = Mouse::getPosition(window).x;
     float My = Mouse::getPosition(window).y;
 
-
-    //Horizontal Line
-    //VertexArray lineh(LineStrip, 4);
-    //lineh[0].position = Vector2f(0, My+stroke);
-    //lineh[1].position = Vector2f(width, My+stroke);
-    //lineh[2].position = Vector2f(0, My-stroke);
-    //lineh[3].position = Vector2f(width, My-stroke);
-    
-    //Vertical line
-    //VertexArray linev(LineStrip, 2);
-    //linev[0].position = Vector2f(Mx, 0);
-    //linev[1].position = Vector2f(Mx, height);
-
     //Horizontal
     lineh.setPosition(0,My);
-    lineh.setOutlineThickness(2.f); // Set outline thickness
-    lineh.setOutlineColor(Color::Red); // Set outline color
-    lineh.setFillColor(Color::Red); // Set fill color to transparent
-    
+    lineh.setOutlineThickness(2.f);
+    lineh.setOutlineColor(Color::Red); 
+    lineh.setFillColor(Color::Red); 
+
     //Vertical
     linev.setPosition(Mx,0);
     linev.setOutlineThickness(2.f); // Set outline thickness
@@ -141,15 +130,100 @@ void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev,
     window.draw(circle);
 }
 
-void pause_screen(Font& font) {
+void menu(RenderWindow& window, Font& font, bool& game_start) {
+
+    int n=100;
+    Ball menu[n];
+
+    RectangleShape bg(Vector2(width, height));
+    bg.setFillColor(Color(0,0,0,192));
+
+    int borde = 10;
+    int offset_text=37 - borde;
     
+    //start Text
+    int start_width_pos=30, start_height_pos=10;
+    Vector2f start_pos(start_width_pos,start_height_pos);
+
+    Text start("Start Game", font, 100);
+    start.setFillColor(Color::White);
+    start.setPosition(start_pos);
+
+    RectangleShape s_start(Vector2f(start.getGlobalBounds().width+borde*2, start.getGlobalBounds().height+borde*2));
+    s_start.setFillColor(Color(128,128,128,64));
+    //s_start.setOutlineColor(Color(64,64,64));
+    s_start.setPosition(start_width_pos-borde,start_height_pos+offset_text);
+
+    //options Text
+    int option_width_pos=30, option_height_pos=120;
+    Vector2f option_pos(option_width_pos,option_height_pos);
+
+    Text Options("Options",font,100);
+    Options.setFillColor(Color::White);
+    Options.setPosition(option_pos);
+
+    RectangleShape s_Options(Vector2f(Options.getGlobalBounds().width+borde*2, Options.getGlobalBounds().height+borde*2));
+    s_Options.setFillColor(Color(128,128,128,64));
+    //s_Options.setOutlineColor(Color(64,64,64));
+    s_Options.setPosition(option_width_pos-borde, option_height_pos+offset_text);
+
+    //Exit Text
+    int exit_width_pos=30, exit_heigth_pos=230;
+    Vector2f exit_pos(exit_width_pos,exit_heigth_pos);
+
+    Text Exit("Exit",font, 100);
+    Exit.setFillColor(Color::White);
+    Exit.setPosition(exit_pos);
+
+    RectangleShape s_Exit(Vector2f(Exit.getGlobalBounds().width+borde*2, Exit.getGlobalBounds().height+borde*2));
+    s_Exit.setFillColor(Color(128,128,128,64));
+    s_Exit.setPosition(exit_pos.x-borde, exit_pos.y+offset_text);
+
+    //Bucle principal de menu
+    while (window.isOpen()) {
+
+        Event event;
+        //Eventos
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
+                window.close();
+
+            if (Keyboard::isKeyPressed(Keyboard::S)) {
+                game_start=true;
+                return;
+            }
+
+            //TODO if exit_text pressed then close;
+        }
+
+        float Mx = Mouse::getPosition(window).x;
+        float My = Mouse::getPosition(window).y;
+
+        for (int i=0;i<n;i++) {
+            menu[i].move();
+            window.draw(menu[i]);
+        }
+
+        window.draw(bg);
+        window.draw(s_start);
+        window.draw(start);
+        window.draw(s_Options);
+        window.draw(Options);
+        window.draw(s_Exit);
+        window.draw(Exit);
+
+        window.display();
+        window.clear();
+    }
+
+}
+
+void pause_screen(Font& font) {
+
 }
 
 void game_over_screen(RenderWindow& window, Font& font) {
-    Text gameOver;
-    gameOver.setFont(font); 
-    gameOver.setString("Game Over!"); 
-    gameOver.setCharacterSize(128);
+    Text gameOver("Game Over!",font,128);
     gameOver.setFillColor(Color::White);
     gameOver.setPosition((width - gameOver.getLocalBounds().width)/2, 
                          (height - gameOver.getLocalBounds().height)/2);
@@ -188,7 +262,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    bool aHold=false, aHoldPrev=false, game_over=false;
+    bool aHold=false, aHoldPrev=false, game_over=false, game_start=false;
 
     SoundBuffer buffer;
     if (!buffer.loadFromFile("Fire.ogg")) {
@@ -223,6 +297,11 @@ int main() {
                 aHold = false;
             }
         }
+
+        if (!game_start) {
+            menu(window, font, game_start);
+            continue;
+        }
         
         //Logica
         float Mx = Mouse::getPosition(window).x;
@@ -255,7 +334,7 @@ int main() {
         }
 
         dr_line(window, lineh, linev, circle);
-
+        
         window.display();
 
         if (game_over) {
