@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <string>
 
 using namespace sf;
 using namespace std;
@@ -102,6 +103,7 @@ public:
 };
 
 void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
+    //Unused value
     float easing = 0.5f;
 
     float Mx = Mouse::getPosition(window).x;
@@ -115,16 +117,16 @@ void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev,
 
     //Vertical
     linev.setPosition(Mx,0);
-    linev.setOutlineThickness(2.f); // Set outline thickness
-    linev.setOutlineColor(Color::Red); // Set outline color
-    linev.setFillColor(Color::Red); // Set fill color to transparent
+    linev.setOutlineThickness(2.f);
+    linev.setOutlineColor(Color::Red); 
+    linev.setFillColor(Color::Red); 
     
     //Circle
     circle.setPosition(Mx-50,My-50);
-    circle.setOutlineThickness(2.f); // Set outline thickness
-    circle.setOutlineColor(Color::Red); // Set outline color
-    circle.setFillColor(Color::Transparent); // Set fill color to transparent
- 
+    circle.setOutlineThickness(2.f); 
+    circle.setOutlineColor(Color::Red); 
+    circle.setFillColor(Color::Transparent);  
+
     window.draw(lineh);
     window.draw(linev);
     window.draw(circle);
@@ -141,7 +143,7 @@ void menu(RenderWindow& window, Font& font, bool& game_start) {
     int borde = 10;
     int offset_text=37 - borde;
     
-    //start Text
+    //Start Menu Text --------------
     int start_width_pos=30, start_height_pos=10;
     Vector2f start_pos(start_width_pos,start_height_pos);
 
@@ -154,23 +156,24 @@ void menu(RenderWindow& window, Font& font, bool& game_start) {
     //s_start.setOutlineColor(Color(64,64,64));
     s_start.setPosition(start_width_pos-borde,start_height_pos+offset_text);
 
-    //options Text
-    int option_width_pos=30, option_height_pos=120;
+    //Options Menu Text ---------------
+    int option_width_pos=30, option_height_pos=108;
     Vector2f option_pos(option_width_pos,option_height_pos);
 
     Text Options("Options",font,100);
     Options.setFillColor(Color::White);
     Options.setPosition(option_pos);
 
+    //Options Rectangle Transparent text
     RectangleShape s_Options(Vector2f(Options.getGlobalBounds().width+borde*2, Options.getGlobalBounds().height+borde*2));
     s_Options.setFillColor(Color(128,128,128,64));
     //s_Options.setOutlineColor(Color(64,64,64));
     s_Options.setPosition(option_width_pos-borde, option_height_pos+offset_text);
 
-    //Exit Text
+    //Exit Menu Text ------------
     int exit_width_pos=30, exit_heigth_pos=230;
     Vector2f exit_pos(exit_width_pos,exit_heigth_pos);
-
+    
     Text Exit("Exit",font, 100);
     Exit.setFillColor(Color::White);
     Exit.setPosition(exit_pos);
@@ -226,7 +229,8 @@ void game_over_screen(RenderWindow& window, Font& font) {
     Text gameOver("Game Over!",font,128);
     gameOver.setFillColor(Color::White);
     gameOver.setPosition((width - gameOver.getLocalBounds().width)/2, 
-                         (height - gameOver.getLocalBounds().height)/2);
+                         (height - gameOver.getLocalBounds().height)/2-45);
+
     window.draw(gameOver);
 }
 
@@ -237,8 +241,9 @@ void reset_game(Ball balls[]) {
     }
 }
 
-void draw_score(RenderWindow& window, Font& font) {
-
+void draw_score(RenderWindow& window, Font& font, int score, Text& src) {
+    src.setString("Score: "+ to_string(score));
+    window.draw(src);
 }
 
 int main() {
@@ -261,6 +266,10 @@ int main() {
 
         return EXIT_FAILURE;
     }
+
+    int score=0;
+    Text Score("", font, 50);
+    Score.setPosition(Vector2f(10,10));
 
     bool aHold=false, aHoldPrev=false, game_over=false, game_start=false;
 
@@ -285,7 +294,8 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
-
+            
+            //Detecta un disparo
             if (event.type == Event::KeyPressed && event.key.code == Keyboard::B 
                                                 || event.type == Event::MouseButtonPressed) {
                 fire.play();
@@ -310,6 +320,7 @@ int main() {
         for (int i = 0; i < objects; i++) {
             if (!Balls[i].is_dead()) {
                 if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
+                    score++;
                     hit.play();
                     Balls[i].kill();
                 }
@@ -334,6 +345,7 @@ int main() {
         }
 
         dr_line(window, lineh, linev, circle);
+        draw_score(window, font, score, Score);
         
         window.display();
 
