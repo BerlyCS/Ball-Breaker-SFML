@@ -226,10 +226,13 @@ void pause_screen(Font& font) {
 }
 
 void game_over_screen(RenderWindow& window, Font& font) {
+    SoundBuffer buffer;
+    buffer.loadFromFile("GameOver.ogg");
     Text gameOver("Game Over!",font,128);
     gameOver.setFillColor(Color::White);
     gameOver.setPosition((width - gameOver.getLocalBounds().width)/2, 
-                         (height - gameOver.getLocalBounds().height)/2-45);
+                        ((height - gameOver.getLocalBounds().height)/2-45));
+                        // -45 because the text appears very low;
 
     window.draw(gameOver);
 }
@@ -350,7 +353,6 @@ int main() {
         window.display();
 
         if (game_over) {
-            buffer.loadFromFile("GameOver.ogg");
             Sound game_over_fx;
             game_over_fx.setBuffer(buffer);
             game_over_fx.play();
