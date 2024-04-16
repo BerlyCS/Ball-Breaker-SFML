@@ -25,9 +25,9 @@ using namespace std;
 
 const float width = VideoMode::getDesktopMode().width;
 const float height = VideoMode::getDesktopMode().height;
-int max_speed = 5;
-int max_size = 50;
-int objects = 100;
+int MAX_SPEED = 5;
+int MAX_SIZE = 50;
+int OBJECTS = 100;
 int stroke = 1;
 
 //srand(time(0));
@@ -44,9 +44,9 @@ private:
 
 public:
     Ball():
-        velX(rand()%max_speed+1),
-        velY(rand()%max_speed+1),
-        size(rand() % max_size + 20),
+        velX(rand()%MAX_SPEED+1),
+        velY(rand()%MAX_SPEED+1),
+        size(rand() % MAX_SIZE + 20),
         killed(false)
     {
         X = rand() % (int(width) - size * 2);
@@ -102,7 +102,7 @@ public:
 
 };
 
-void dr_line(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
+void draw_pointer(RenderWindow& window, RectangleShape& lineh, RectangleShape& linev, CircleShape& circle ) {
     //Unused value
     float easing = 0.5f;
 
@@ -232,14 +232,14 @@ void game_over_screen(RenderWindow& window, Font& font) {
     gameOver.setFillColor(Color::White);
     gameOver.setPosition((width - gameOver.getLocalBounds().width)/2, 
                         ((height - gameOver.getLocalBounds().height)/2-45));
-                        // -45 because the text appears very low;
+                        // -45 because the text appears too low;
 
     window.draw(gameOver);
 }
 
 //Unused
 void reset_game(Ball balls[]) {
-    for (int i=0;i<objects;i++) {
+    for (int i=0;i<OBJECTS;i++) {
         balls->revive();
     }
 }
@@ -258,11 +258,11 @@ int main() {
     CircleShape circle(50.f);
 
     ifstream params("parametros.txt");
-    if (!(params >> max_speed >> max_size >> objects)) {
+    if (!(params >> MAX_SPEED >> MAX_SIZE >> OBJECTS)) {
         return 1;
     }
 
-    Ball Balls[objects];
+    Ball Balls[OBJECTS];
 
     Font font;
     if (!font.loadFromFile("pixelated.ttf")) {
@@ -305,6 +305,7 @@ int main() {
                 aHold = true;
             }
 
+            //This changes the value aHold when the button is released, avoiding the detection of many clicks at the same time.
             if (event.type == Event::KeyReleased && event.key.code == Keyboard::B 
                                                  || event.type == sf::Event::MouseButtonReleased) {
                 aHold = false;
@@ -316,11 +317,11 @@ int main() {
             continue;
         }
         
-        //Logica
+        //Main logic
         float Mx = Mouse::getPosition(window).x;
         float My = Mouse::getPosition(window).y;
 
-        for (int i = 0; i < objects; i++) {
+        for (int i = 0; i < OBJECTS; i++) {
             if (!Balls[i].is_dead()) {
                 if (Balls[i].distance(Mx, My) && aHold && !aHoldPrev) {
                     score++;
@@ -337,7 +338,7 @@ int main() {
 
         game_over=true;
 
-        for (int i = 0; i < objects; i++) {
+        for (int i = 0; i < OBJECTS; i++) {
             if (Balls[i].is_dead()) {
                 continue;
             }
@@ -347,7 +348,7 @@ int main() {
             }
         }
 
-        dr_line(window, lineh, linev, circle);
+        draw_pointer(window, lineh, linev, circle);
         draw_score(window, font, score, Score);
         
         window.display();
@@ -357,7 +358,7 @@ int main() {
             game_over_fx.setBuffer(buffer);
             game_over_fx.play();
             while (game_over_fx.getStatus() == Sound::Playing) {
-                dr_line(window, lineh, linev, circle);
+                draw_pointer(window, lineh, linev, circle);
                 game_over_screen(window, font);
                 window.display();
                 window.clear();
